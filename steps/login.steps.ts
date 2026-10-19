@@ -1,5 +1,5 @@
 import { createBdd } from 'playwright-bdd';
-import { test } from '../fixtures';
+import { test } from '../fixtures'
 
 const { Given, When, Then } = createBdd(test);
 
@@ -12,7 +12,7 @@ When('I login in as {string} with password { string }', async ({ loginPage }, us
 })
 
 Then('I should see the products page', async ({ inventoryPage }) => {
-    await inventoryPage.expectedLoaded();
+    await inventoryPage.expectLoaded();
 })
 
 Then('I should see the error {string}', async({ loginPage }, message:string) => {

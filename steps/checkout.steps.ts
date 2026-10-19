@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { faker } from '@faker-js/faker';
-import { test } from '../fixtures';
+import { test } from '../fixtures'
 
 const { Given, When, Then } = createBdd(test);
 
