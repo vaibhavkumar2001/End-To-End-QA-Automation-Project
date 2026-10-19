@@ -7,7 +7,7 @@ Given('I am on the login page', async ({ loginPage }) => {
     await loginPage.open()
 })
 
-When('I login in as {string} with password { string }', async ({ loginPage }, username: string, password: string) => {
+When('I login in as {string} with password {string}', async ({ loginPage }, username: string, password: string) => {
     await loginPage.login(username,password);
 })
 
