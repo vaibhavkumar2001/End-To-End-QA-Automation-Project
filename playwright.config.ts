@@ -8,8 +8,12 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 4 : undefined,
-  reporter: [['html', { open: 'never' }], ['list']],
+  workers: process.env.CI ? 2 : undefined,
+  reporter: [
+    ['html', { open: 'never' }],
+    ['allure-playwright', { resultsDir: 'allure-results' }],
+    ['list'],
+  ],
   use: {
     baseURL: process.env.UI_BASE_URL || 'https://www.saucedemo.com',
     trace: 'on-first-retry',
@@ -27,9 +31,22 @@ export default defineConfig({
       ...defineBddProject({
         name: 'bdd',
         features: 'features/**/*.feature',
-        steps: 'steps/**/*.ts',
+        // Fixtures file must be listed so playwright-bdd can find the custom test instance
+        steps: ['steps/**/*.ts', 'fixtures/index.ts'],
       }),
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'api',
+      testDir: './tests/api',
+      use: {
+        // API project overrides the global UI baseURL
+        baseURL: process.env.API_BASE_URL || 'https://restful-booker.herokuapp.com',
+        extraHTTPHeaders: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      },
     },
   ],
 });

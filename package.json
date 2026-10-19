@@ -6,8 +6,11 @@
     "@faker-js/faker": "^9.9.0",
     "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
+    "allure-commandline": "^2.46.1",
+    "allure-playwright": "^3.14.0",
     "dotenv": "^18.0.8",
-    "playwright-bdd": "^9.2.1"
+    "playwright-bdd": "^9.2.1",
+    "zod": "^4.6.7"
   },
   "scripts": {}
 }
