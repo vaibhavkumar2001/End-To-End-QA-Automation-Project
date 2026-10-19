@@ -44,7 +44,7 @@ jobs:
         run: npx bddgen
 
       - name: Run smoke tests
-        run: npx playwright test --grep @smoke --reporter=list,html
+        run: npx playwright test --grep "@smoke" --reporter=list,html
 
       - name: Upload report and traces
         if: ${{ !cancelled() }}
