@@ -1,0 +1,57 @@
+name: PR Smoke Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+# Cancel older runs of the same PR when a new commit is pushed
+concurrency:
+  group: pr-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UI_BASE_URL: https://www.saucedemo.com
+  API_BASE_URL: https://restful-booker.herokuapp.com
+  STANDARD_USER: standard_user
+  LOCKED_USER: locked_out_user
+  PASSWORD: secret_sauce
+  API_USER: admin
+  API_PASSWORD: password123
+  PLAYWRIGHT_HTML_OPEN: never
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Generate BDD specs
+        run: npx bddgen
+
+      - name: Run smoke tests
+        run: npx playwright test --grep @smoke --reporter=list,html
+
+      - name: Upload report and traces
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
