@@ -1,0 +1,140 @@
+name: Nightly Regression
+
+on:
+  schedule:
+    # 20:30 UTC = 02:00 AM IST
+    - cron: '30 20 * * *'
+  workflow_dispatch:
+
+env:
+  UI_BASE_URL: https://www.saucedemo.com
+  API_BASE_URL: https://restful-booker.herokuapp.com
+  STANDARD_USER: standard_user
+  LOCKED_USER: locked_out_user
+  PASSWORD: secret_sauce
+  API_USER: admin
+  API_PASSWORD: password123
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx bddgen
+
+      - name: Run tests (shard ${{ matrix.shard }}/4)
+        run: npx playwright test --shard=${{ matrix.shard }}/4 --reporter=blob,allure-playwright
+
+      - name: Upload blob report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: blob-report-${{ matrix.shard }}
+          path: blob-report
+          retention-days: 1
+
+      - name: Upload allure results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results-${{ matrix.shard }}
+          path: allure-results
+          retention-days: 1
+
+  merge-reports:
+    needs: test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Allure CLI needs Java
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: npm ci
+
+      - name: Download blob reports
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Merge into one Playwright HTML report
+        run: npx playwright merge-reports --reporter html ./all-blob-reports
+
+      - name: Download allure results
+        uses: actions/download-artifact@v4
+        with:
+          path: allure-results
+          pattern: allure-results-*
+          merge-multiple: true
+
+      - name: Generate Allure report
+        run: npx allure generate allure-results --clean -o allure-report
+
+      - name: Upload Playwright HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report
+          retention-days: 14
+
+      - name: Upload Allure report
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+          retention-days: 14
+
+  notify:
+    needs: [test, merge-reports]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          TEST_RESULT: ${{ needs.test.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          # Skip quietly if the webhook secret is not configured
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not set, skipping notification"
+            exit 0
+          fi
+
+          if [ "$TEST_RESULT" = "success" ]; then
+            ICON=":white_check_mark:"
+            STATUS="passed"
+          else
+            ICON=":x:"
+            STATUS="failed"
+          fi
+
+          curl -sS -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \"$ICON Nightly regression $STATUS for ${GITHUB_REPOSITORY}\n<$RUN_URL|View run and reports>\"}" \
+            "$SLACK_WEBHOOK_URL"
