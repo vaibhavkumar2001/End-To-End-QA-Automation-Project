@@ -1,0 +1,15 @@
+## Flaky test policy
+
+1. **Detect:** CI retries failed tests twice. Tests that pass on retry are marked
+   "Flaky" in the Playwright report and reviewed after each nightly run.
+2. **Reproduce:** run the test repeatedly:
+   `npx playwright test <file> --project=ui --repeat-each=10`
+3. **Quarantine:** tag the test with `@quarantine`. Quarantined tests are skipped
+   on pull requests but still run in the nightly regression, so they stay visible.
+4. **Fix root cause:** log it in the table below, fix it, then remove the tag.
+5. **Prevent:** no hard waits (`waitForTimeout`); use auto-waiting
+   `expect(locator)` assertions; every test creates its own data.
+
+| Test | Root cause | Fix |
+|------|-----------|-----|
+| (none yet) | | |
