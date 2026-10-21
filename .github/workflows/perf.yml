@@ -1,0 +1,15 @@
+name: Performance (k6)
+
+on:
+  # Manual only: avoid hitting the shared public demo API on every push
+  workflow_dispatch:
+
+jobs:
+  k6:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run k6 load test
+        run: docker run --rm -v "${{ github.workspace }}/performance:/scripts" grafana/k6 run /scripts/booking-load.js

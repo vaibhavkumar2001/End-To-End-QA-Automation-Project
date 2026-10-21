@@ -10,3 +10,9 @@ services:
       - ./allure-results:/app/allure-results
       - ./test-results:/app/test-results
       - ./tests:/app/tests
+
+  k6:
+    image: grafana/k6
+    volumes:
+      - ./performance:/scripts
+    command: run /scripts/booking-load.js
