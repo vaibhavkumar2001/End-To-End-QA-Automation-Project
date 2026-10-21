@@ -5,9 +5,8 @@ services:
     # Recommended by Playwright for Chromium in containers
     ipc: host
     volumes:
-      # Reports appear on your machine after the run
+      # Reports and snapshots appear on your machine after the run
       - ./playwright-report:/app/playwright-report
       - ./allure-results:/app/allure-results
       - ./test-results:/app/test-results
-      - ./tests:/app/tests- ./tests:/app/tests
       - ./tests:/app/tests
