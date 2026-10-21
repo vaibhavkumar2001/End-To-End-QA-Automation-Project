@@ -3,8 +3,9 @@
 [![PR Smoke Tests](https://github.com/vaibhavkumar2001/End-To-End-QA-Automation-Project/actions/workflows/pr-smoke.yml/badge.svg)](https://github.com/vaibhavkumar2001/End-To-End-QA-Automation-Project/actions/workflows/pr-smoke.yml)
 [![Nightly Regression](https://github.com/vaibhavkumar2001/End-To-End-QA-Automation-Project/actions/workflows/nightly-regression.yml/badge.svg)](https://github.com/vaibhavkumar2001/End-To-End-QA-Automation-Project/actions/workflows/nightly-regression.yml)
 
-A test automation framework covering UI, BDD, API, accessibility and visual
-regression, with CI/CD, sharded nightly runs, Allure reporting and Docker.
+A test automation framework covering UI, BDD, API, accessibility, visual
+regression and load testing, with CI/CD, sharded nightly runs, Allure reporting
+and Docker.
 
 **Targets:** [SauceDemo](https://www.saucedemo.com) (UI) and
 [Restful-Booker](https://restful-booker.herokuapp.com) (API)
@@ -36,6 +37,7 @@ flowchart LR
 | API | Typed client, Zod schema validation, negative cases | `api/`, `tests/api/` |
 | Accessibility | axe-core (WCAG 2 A/AA) | `tests/ui/a11y.spec.ts` |
 | Visual regression | Playwright snapshots (Linux baselines) | `tests/ui/visual.spec.ts` |
+| Performance | k6 load test (5 virtual users, 30 s) with pass/fail thresholds | `performance/` |
 | Test data | Faker factories, per-test data creation | `utils/` |
 
 ## Design decisions
@@ -45,10 +47,11 @@ flowchart LR
 - **Schema validation:** API tests check response shape and types, not only status codes.
 - **Independent tests:** API tests create their own data and no test depends on another test's state, so tests run in parallel safely.
 - **Known API quirks are tested, not hidden:** for example, Restful-Booker returns 201 on delete and 200 on bad credentials.
+- **Load test thresholds gate the run:** the k6 test fails if more than 5% of requests fail or p95 latency exceeds 1.5 s.
 
 ## Tech stack
 
-Playwright, TypeScript, playwright-bdd, Zod, Faker, axe-core, Allure,
+Playwright, TypeScript, playwright-bdd, Zod, Faker, axe-core, Allure, k6,
 GitHub Actions, Docker
 
 ## Getting started
@@ -83,12 +86,21 @@ Visual regression baselines are Linux-only. Generate or update them in Docker:
 docker compose run --rm tests sh -c "npx playwright test tests/ui/visual.spec.ts --project=ui --update-snapshots"
 ```
 
+### Load test
+
+```bash
+docker compose run --rm k6
+```
+
+The load is intentionally small because the target is a shared public demo API.
+
 ## CI/CD
 
 | Pipeline | Trigger | What runs |
 |----------|---------|-----------|
 | PR Smoke | Every pull request | Type check, then `@smoke` tests (quarantined tests skipped) |
 | Nightly Regression | 02:00 IST and manual | Full suite in 4 parallel shards, merged Playwright and Allure reports, optional Slack notification |
+| Performance (k6) | Manual only | k6 load test against the booking API |
 
 ## Results
 
@@ -97,6 +109,7 @@ docker compose run --rm tests sh -c "npx playwright test tests/ui/visual.spec.ts
 | Automated tests | 20 (8 UI, 4 BDD, 8 API) |
 | PR smoke duration | about 1 min (see the Actions tab) |
 | Full nightly duration with 4 shards | about 1.5 min (see the Actions tab) |
+| API load test (5 virtual users, 30 s) | p95 about 740 ms, 0% failed requests |
 
 ## Flaky test policy
 
@@ -120,6 +133,7 @@ api/          typed API client and Zod schemas
 features/     Gherkin feature files
 fixtures/     custom Playwright fixtures (UI and API)
 pages/        page objects (BasePage + pages)
+performance/  k6 load test
 steps/        BDD step definitions
 tests/ui/     UI, accessibility and visual specs
 tests/api/    API specs
@@ -129,4 +143,4 @@ utils/        test data factories
 
 ## Roadmap
 
-k6 load test for the API, and LLM-assisted generation of Gherkin scenarios.
+LLM-assisted generation of Gherkin scenarios.
