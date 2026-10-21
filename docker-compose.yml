@@ -9,3 +9,5 @@ services:
       - ./playwright-report:/app/playwright-report
       - ./allure-results:/app/allure-results
       - ./test-results:/app/test-results
+      - ./tests:/app/tests- ./tests:/app/tests
+      - ./tests:/app/tests
