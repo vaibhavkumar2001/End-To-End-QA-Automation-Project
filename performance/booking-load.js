@@ -2,6 +2,7 @@ import http from 'k6/http'
 import { check, sleep } from 'k6'
 
 
+
 const BASE_URL = __ENV.API_BASE_URL || 'https://restful-booker.herokuapp.com';
 
 export const options = {
@@ -30,8 +31,15 @@ export default function () {
         additionalneeds: 'Breakfast',
     })
     const createRes = http.post(`${BASE_URL}/booking`, payload, {
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json',
+            Accept: 'application/json',
+            },
     });
+
+    //Temperoray Check 
+    if(createRes.status !== 200) {
+        console.log(`create failed: ${createRes.status} ${createRes.body}`);
+    }
 
     check(createRes, {
         'create returns 200': (r) => r.status === 200,
