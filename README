@@ -13,18 +13,18 @@ regression, with CI/CD, sharded nightly runs, Allure reporting and Docker.
 
 ```mermaid
 flowchart LR
-    Dev[Developer] -->|pull request| PR[PR Smoke: tsc + @smoke tests]
-    Cron[Nightly 02:00 IST] --> Nightly[Nightly Regression]
-    Nightly --> S1[Shard 1]
-    Nightly --> S2[Shard 2]
-    Nightly --> S3[Shard 3]
-    Nightly --> S4[Shard 4]
-    S1 --> Merge[Merge reports]
+    Dev["Developer"] -->|"pull request"| PR["PR Smoke: type check and smoke tests"]
+    Cron["Nightly 02:00 IST"] --> Nightly["Nightly Regression"]
+    Nightly --> S1["Shard 1"]
+    Nightly --> S2["Shard 2"]
+    Nightly --> S3["Shard 3"]
+    Nightly --> S4["Shard 4"]
+    S1 --> Merge["Merge reports"]
     S2 --> Merge
     S3 --> Merge
     S4 --> Merge
-    Merge --> Reports[Playwright HTML + Allure]
-    Merge --> Slack[Slack notification]
+    Merge --> Reports["Playwright HTML and Allure"]
+    Merge --> Slack["Slack notification (optional)"]
 ```
 
 ## What is covered
@@ -43,7 +43,7 @@ flowchart LR
 - **BasePage:** shared navigation and assertion helpers, so page objects stay small.
 - **Fixtures:** page objects and the API client are injected, so tests never build them by hand.
 - **Schema validation:** API tests check response shape and types, not only status codes.
-- **Independent tests:** every test creates its own data, so tests run in parallel safely.
+- **Independent tests:** API tests create their own data and no test depends on another test's state, so tests run in parallel safely.
 - **Known API quirks are tested, not hidden:** for example, Restful-Booker returns 201 on delete and 200 on bad credentials.
 
 ## Tech stack
@@ -88,7 +88,7 @@ docker compose run --rm tests sh -c "npx playwright test tests/ui/visual.spec.ts
 | Pipeline | Trigger | What runs |
 |----------|---------|-----------|
 | PR Smoke | Every pull request | Type check, then `@smoke` tests (quarantined tests skipped) |
-| Nightly Regression | 02:00 IST and manual | Full suite in 4 parallel shards, merged Playwright and Allure reports, Slack notification |
+| Nightly Regression | 02:00 IST and manual | Full suite in 4 parallel shards, merged Playwright and Allure reports, optional Slack notification |
 
 ## Results
 
@@ -107,7 +107,7 @@ docker compose run --rm tests sh -c "npx playwright test tests/ui/visual.spec.ts
    on pull requests but still run nightly, so they stay visible.
 4. **Fix the root cause:** log it in the table below, fix it, then remove the tag.
 5. **Prevent:** no hard waits; use auto-waiting `expect(locator)` assertions;
-   every test creates its own data.
+   keep tests independent of each other.
 
 | Test | Root cause | Fix |
 |------|-----------|-----|
