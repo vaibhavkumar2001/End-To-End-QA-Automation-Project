@@ -1,6 +1,6 @@
 import { createBdd } from 'playwright-bdd';
 import { faker } from '@faker-js/faker';
-import { test } from '../fixtures'
+import { test } from '../fixtures';
 
 const { Given, When, Then } = createBdd(test);
 
@@ -11,6 +11,9 @@ Given('I am logged in as a standard user', async ({ loginPage }) => {
 
 When('I add {string} to the cart', async ({ inventoryPage }, productSlug: string) => {
   await inventoryPage.addToCart(productSlug);
+});
+
+When('I open the cart', async ({ inventoryPage }) => {
   await inventoryPage.openCart();
 });
 

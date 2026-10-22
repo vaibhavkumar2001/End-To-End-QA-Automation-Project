@@ -106,7 +106,7 @@ The load is intentionally small because the target is a shared public demo API.
 
 | Metric | Value |
 |--------|-------|
-| Automated tests | 20 (8 UI, 4 BDD, 8 API) |
+| Automated tests | 36 (8 UI, 20 BDD, 8 API) |
 | PR smoke duration | about 1 min (see the Actions tab) |
 | Full nightly duration with 4 shards | about 1.5 min (see the Actions tab) |
 | API load test (5 virtual users, 30 s) | p95 about 740 ms, 0% failed requests |

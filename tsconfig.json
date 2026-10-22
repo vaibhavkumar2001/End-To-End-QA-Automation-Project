@@ -17,6 +17,7 @@
     "fixtures",
     "api",
     "utils",
+    "scripts",
     "playwright.config.ts",
     ".features-gen"
   ]
