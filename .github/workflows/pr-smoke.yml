@@ -44,7 +44,17 @@ jobs:
         run: npx bddgen
 
       - name: Run smoke tests
-        run: npx playwright test --grep "@smoke" --grep-invert "@quarantine" --reporter=list,html
+        env:
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+        run: npx playwright test --grep "@smoke" --grep-invert "@quarantine" --reporter=list,html,json
+
+      - name: AI failure summary
+        if: failure()
+        continue-on-error: true
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+        run: npx tsx scripts/summarize-failures.ts
 
       - name: Upload report and traces
         if: ${{ !cancelled() }}
