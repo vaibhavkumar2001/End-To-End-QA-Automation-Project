@@ -11,3 +11,4 @@ allure-results/
 allure-report/
 blob-report/
 .features-gen/
+generated/
