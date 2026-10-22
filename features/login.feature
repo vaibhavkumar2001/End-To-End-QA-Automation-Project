@@ -1,4 +1,3 @@
-@smoke
 Feature: Login
 
   @smoke
